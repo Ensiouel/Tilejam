@@ -5,6 +5,7 @@ local ld = love.data
 -- ===========================================================================
 -- Tilejam
 -- ===========================================================================
+
 local Tilejam  = { 
   _URL         = "https://github.com/Ensiouel/Tilejam",
   _VERSION     = "1.0",
@@ -18,17 +19,23 @@ function Tilejam:new()
   setmetatable(tilejam, self)
   self.__index = self; return tilejam
 end
+
 -- ===========================================================================
+
 function Tilejam:debug(message) --> nil
   if self.conf.debug then
     print(message)
   end
 end
+
 -- ===========================================================================
+
 function Tilejam:newTiled(path)
 
 end
+
 -- ===========================================================================
+
 function Tilejam:newImage( path ) --> Image
   local hashPath = ld.hash( "md5", path )
 
@@ -55,19 +62,35 @@ function Tilejam:newImage( path ) --> Image
 
   return self.imagecache[hashPath].image
 end
+
 -- ===========================================================================
+
 function Tilejam:getImage() --> Image
 
 end
+
 -- ===========================================================================
 -- Tilemap
 -- ===========================================================================
-local Tilemap = {}
+
+local Tilemap        = {}
 function Tilemap:new()
   local tilemap      = {}
   setmetatable(tilemap, self)
   self.__index = self; return tilemap
 end
+
+-- ===========================================================================
+-- Tileset
+-- ===========================================================================
+
+local Tileset        = {}
+function Tileset:new()
+  local tileset      = {}
+  setmetatable(tileset, self)
+  self.__index = self; return tileset
+end
+
 -- ===========================================================================
 
 return Tilejam:new()
