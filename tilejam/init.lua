@@ -1,3 +1,5 @@
+love.graphics.setDefaultFilter("nearest", "nearest")
+
 local lg = love.graphics
 local li = love.image
 local ld = love.data
@@ -18,6 +20,8 @@ local Tilemap = {}
 local Grid    = {}
 local Layer   = {}
 
+local utils = require((...)..".".."utils")
+
 function Tilejam:new()
   local tilejam      = {}
   tilejam.conf       = {}
@@ -35,26 +39,29 @@ end
 -- ===========================================================================
 
 function Tilejam:newTilemap( path ) --> Tilemap
-  local map, error, tilesets, tilemap, tileset
+  local map, error, tilesets, tilemap, tileset, canvas
+  local imageData = {}
 
   -- Load a lua file with the Tiled data 
   map, error = love.filesystem.load( path )
-  if error == nil then
-    map = map()
-  else
+  if error then
     self:debug( error )
+    return nil
+  else
+    map = map()
   end
 
   tilesets = map.tilesets
   tilemap = Tilemap:new()
 
   for k, v in pairs( tilesets ) do
+    imageData[#imageData + 1] = {
+      imageData = love.image.newImageData(v.image)
+    }
     tilemap:newTileset( v )
   end
 
-  for k, v in pairs( tilemap.tilesets ) do
-    print(k, v)
-  end
+  return utils.jamTileImages(imageData, 16, 16)
 end
 
 -- ===========================================================================
@@ -73,7 +80,8 @@ end
 
 -- ===========================================================================
 
-function Tilejam:newImage( path ) --> Image
+function Tilejam:newImage( path, type ) --> Image
+  local type = type or true
   local hashPath = ld.hash( "md5", path )
 
   -- Search by image path
@@ -94,7 +102,7 @@ function Tilejam:newImage( path ) --> Image
   -- Creating an image cache
   Tilejam.imagecache[hashPath] = {
     hashImage = hashImage,
-    image = lg.newImage( imageData )
+    image = type and lg.newImage( imageData ) or imageData
   }
 
   return Tilejam.imagecache[hashPath].image
@@ -127,7 +135,7 @@ function Tilemap:newLayer( params ) --> Layer
 end
 
 function Tilemap:newTileset( params ) --> Tileset
-  local tileset = Tileset:new( params )
+  local tileset = Tileset:new( params, Tilejam:newImage(params.image, false) )
   if self.tilesets[tileset.name] == nil then
     self.tilesets[tileset.name] = tileset
     return self.tilesets[tileset.name]
@@ -151,7 +159,7 @@ end
 -- Tileset
 -- ===========================================================================
 
-function Tileset:new( params )
+function Tileset:new( params, image )
   local tileset              = {}
   tileset.name               = params.name
   tileset.firstgid           = params.firstgid
@@ -169,7 +177,7 @@ function Tileset:new( params )
   tileset.spacing            = params.spacing
   tileset.margin             = params.margin
   tileset.columns            = params.columns
-  tileset.image              = Tilejam:newImage(params.image)
+  tileset.image              = image
   tileset.imageWidth         = tileset.image:getWidth()
   tileset.imageHeight        = tileset.image:getHeight()
   tileset.objectAlignment    = params.objectalignment
